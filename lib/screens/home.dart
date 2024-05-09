@@ -1,6 +1,10 @@
+import 'package:bmi_calculator/screens/widgets/input_details_wigets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+// import 'package:syncfusion_flutter_gauges/gauges.dart';
+
+import 'helper/bmi_chart_helper.dart';
+import 'helper/bmi_meter_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,16 +15,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
+  TextEditingController ageController = TextEditingController();
+  TextEditingController feetController = TextEditingController();
+  TextEditingController inchController = TextEditingController();
+  TextEditingController weightController = TextEditingController();
+  TextEditingController controller5 = TextEditingController();
+  double? ans;
+  double? lb;
+  bool changeMaleGenderColor = false;
+  bool changeFemaleGenderColor = false;
+
   @override
   Widget build(BuildContext context) {
 
-    // double screenHeight=MediaQuery.of(context).size.height;
-    double screenWidth=MediaQuery.of(context).size.width;
 
-    double SizeBoxWidth=screenWidth*0.15;
     return Scaffold(
       appBar: AppBar(
-        // toolbarHeight: 60,
         backgroundColor: Colors.deepPurple,
         title: Text("BMI Calculator",style: TextStyle(
             fontSize: 25,
@@ -28,141 +38,153 @@ class _HomeScreenState extends State<HomeScreen> {
             letterSpacing: 0.5,
             color: Colors.white
         ),),
+        centerTitle: true,
         actions: [
           IconButton(
               color: Colors.white,
-
-              // iconSize: 30,
-              onPressed: (){}, icon: Icon(Icons.replay)),
-          IconButton(
-              color: Colors.white,
-              // iconSize: 30,
               onPressed: (){
-              }, icon: Icon(Icons.more_vert))
+                dispose1();
+              }, icon: Icon(Icons.replay)),
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
+        child: Column(
+          children: [
+            inputArea(),
+            bmiChart(ans),
 
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-
-
-                  SizedBox(
-                    width: SizeBoxWidth,
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'Age'
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: SizeBoxWidth,
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'Ht\'\'(ft)'
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: SizeBoxWidth,
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'Ht\'(in)'
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(onPressed: (){}, icon: Icon(Icons.male,size: 40,)),
-                  Text("l",style: TextStyle(fontSize: 30),),
-                  IconButton(onPressed: (){}, icon: Icon(Icons.female,size: 40,)),
-                  // SizedBox(width: 20,),
-                  SizedBox(
-                    width: screenWidth*0.25,
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                          labelText: 'Weight(KG)'
-                      ),
-                    ),
-                  ),
-                  IconButton(onPressed: (){}, icon: Icon(Icons.navigate_next_sharp,size: 40,))
-                ],
-              ),
-              SizedBox(height: 20,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 300,
-                    child: SfRadialGauge(
-                        axes: <RadialAxis>[
-                          RadialAxis(minimum: 15, maximum: 40,
-                              ranges: <GaugeRange>[
-                                GaugeRange(startValue: 15, endValue: 18, color:Colors.red),
-                                GaugeRange(startValue: 18,endValue: 25,color: Colors.green),
-                                GaugeRange(startValue: 25,endValue: 40,color: Colors.yellow)],
-                              pointers: <GaugePointer>[
-                                NeedlePointer(value: 10)],
-                              annotations: <GaugeAnnotation>[
-                                GaugeAnnotation(widget: Container(child:
-                                Text('10.0',style: TextStyle(fontSize: 25,fontWeight: FontWeight.bold))),
-                                    angle: 90, positionFactor: 0.5
-                                )]
-                          )]),
-                  ),
-                ],
-              ),
-
-            ],
-          ),
+          ],
         ),
-      )
+      ),
+    );
+  }
+  Widget inputArea() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+                child: InputDetails(
+                  ageController: ageController,
+                  labelText: 'Age',
+                )),
+            const SizedBox(
+              width: 45,
+            ),
+            Expanded(
+                child: InputDetails(
+                    ageController: feetController, labelText: "Ht (f)")),
+            const SizedBox(
+              width: 40,
+            ),
+            Expanded(
+                child: InputDetails(
+                    ageController: inchController, labelText: "Ht (in)")),
+            const SizedBox(
+              width: 50,
+            ),
+            const Text('ft'),
+            const SizedBox(
+              width: 10,
+            ),
+            InkWell(
+                onTap: () {}, child: const Icon(Icons.arrow_drop_down_outlined))
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  SizedBox(
+                    height: 100,
+                    child: InkWell(
+                      onTap: () {
+                        changeMaleGenderColor = true;
+                        changeFemaleGenderColor = false;
+                        setState(() {});
+                      },
+                      child: Icon(
+                        Icons.male,
+                        color:
+                        changeMaleGenderColor == true ? Colors.green : null,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                  const Text(
+                    ' | ',
+                    style: TextStyle(fontSize: 25),
+                  ),
+                  SizedBox(
+                    height: 100,
+                    child: InkWell(
+                      onTap: () {
+                        changeFemaleGenderColor = true;
+                        changeMaleGenderColor = false;
+                        setState(() {});
+                      },
+                      child: Icon(Icons.female,
+                          color: changeFemaleGenderColor == true
+                              ? Colors.green
+                              : null,
+                          size: 28),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              width: 15,
+            ),
+            SizedBox(
+              height: 100,
+              width: 110,
+              child: TextFormField(
+                controller: weightController,
+                decoration: const InputDecoration(
+                  labelText: "Weight",
+                ),
+              ),
+            ),
+            const SizedBox(
+              width: 90,
+            ),
+            // const Text('wt  '),
+            InkWell(
+              onTap: () {
+                bmiCalculation();
+              },
+              child: const Icon(Icons.done_outline_sharp),
+            )
+          ],
+        ),
+        bmiMeter(ans),
+      ],
     );
   }
 
+  void bmiCalculation() {
+    double? wt = double.tryParse(weightController.text) ?? 0;
+    double? ft = double.tryParse(feetController.text) ?? 0;
+    double? inch = double.tryParse(inchController.text) ?? 0;
+
+    double? meter = (ft * 12 + inch) * 0.0254;
+    ans = wt / (meter * meter);
+    setState(() {});
+  }
+
+  void dispose1() {
+    // super.dispose();
+    ageController.clear();
+    feetController.clear();
+    inchController.clear();
+    weightController.clear();
+  }
 
 
-
-
-
-
-// Widget _genderSelector(){
-//   return Container(
-//     child: Row(
-//       mainAxisSize: MainAxisSize.max,
-//       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//       children: [
-//         Column(
-//           children: [
-//             IconButton(
-//               iconSize: 60,
-//                 onPressed: (){
-//                 setState(() {
-//                   _selectGender=0;
-//                 });
-//                 },
-//                 icon: Icon(Icons.male,
-//                   color: _selectGender==0?Theme.of(context).colorScheme.primary:Colors.red,
-//                 ),
-//             ),
-//             const Text("Male",style: TextStyle(
-//               fontSize: 18
-//             ),)
-//           ],
-//         ),
-//       ],
-//     ),
-//   );
-// }
 }
 
 
